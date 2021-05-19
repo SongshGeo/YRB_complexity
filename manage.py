@@ -2,7 +2,7 @@ import logging
 import datetime
 import os
 
-UPDATE_FILE = os.path.join(os.getcwd(), r"../log/updates.log")
+UPDATE_FILE = os.path.join(os.getcwd(), r"log/updates.log")
 
 
 def create_a_logger(name, file=UPDATE_FILE, console=True):
