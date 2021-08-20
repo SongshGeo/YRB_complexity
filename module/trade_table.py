@@ -12,35 +12,7 @@ from pandas import DataFrame
 from module.genepy_index import genepy_index
 import numpy as np
 import networkx as nx
-from networkx.utils import py_random_state
-
-
-def get_neighbors(g, node, depth=1):
-    output = {}
-    layers = dict(nx.bfs_successors(g, source=node, depth_limit=depth))
-    nodes = [node]
-    for i in range(1,depth+1):
-        output[i] = []
-        for x in nodes:
-            output[i].extend(layers.get(x, []))
-        nodes = output[i]
-    return output
-
-
-def get_mean_nearest_nbr_degree(g, depth=1):
-    provinces = []
-    for n in g:
-        if nx.get_node_attributes(g, 'bipartite')[n] == 'provinces':
-            provinces.append(n)
-    degrees = []
-    for item in provinces:
-        output = get_neighbors(g, item, depth=depth)[depth]
-        degree = g.degree(item)
-        if degree == 0:
-            degree = 1
-        knn = np.sum([g.degree(n) for n in output]) / degree
-        degrees.append(knn)
-    return np.mean(degrees)
+from tools.bipartite_network_explore import get_neighbors
 
 
 class TradeTable(DataFrame, ABC):
@@ -134,6 +106,13 @@ class TradeTable(DataFrame, ABC):
         return pd.Series(knn_dic, index=use_list)
 
     def mean_nbr_degree(self, **kwargs):
+        """
+        利用贸易矩阵制作的二元网络，计算平均最近邻居度（KNN）的全网平均值
+        :param kwargs:
+            :kwargs, axis: 计算轴
+            :kwargs depth: 深度（第几层邻居）
+        :return: 整个网络所有节点的KNN的全局平均值
+        """
         return self.get_knn_dict(**kwargs).mean()
 
     def copy_absolute_random_graph(self):
@@ -156,6 +135,14 @@ class TradeTable(DataFrame, ABC):
         return random_graph
 
     def copy_one_side_random_graph(self, top='index'):
+        """
+        制作一个与输入贸易网络类似的复杂网络：
+            1- 两侧结点数量与边数量完全相同
+            2- 某一侧节点度值的分布完全相同
+            3- 另一侧结点连边目标随机
+        :param top: 模仿哪一边的度分布? index, or column
+        :return:随机网
+        """
         if top == 'index':
             top = self.index.tolist()
             bottom = self.columns.tolist()
