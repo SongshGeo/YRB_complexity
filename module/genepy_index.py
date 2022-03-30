@@ -49,3 +49,9 @@ def genepy_index(matrix, how='row'):
     theta = e_values[:2].reshape(2, 1)
     index = np.square(np.dot(np.square(e), theta)) + 2 * np.square(e) * np.square(theta)
     return np.array(e), np.array(index)
+
+type(yrs)
+
+?a.append
+
+?np.mean
